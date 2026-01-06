@@ -1,0 +1,16 @@
+{
+  "name": "CHAINSAW MAN",
+  "width": 778,
+  "height": 1200,
+  "balloons": [
+    {
+      "id": 1,
+      "rect": [
+        591,
+        81,
+        182,
+        166
+      ]
+    }
+  ]
+}

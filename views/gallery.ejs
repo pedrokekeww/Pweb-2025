@@ -1,0 +1,98 @@
+<%- include('partials/header') %>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
+                <h1 class="h2 text-primary fw-bold mb-0">Galeria de Memes</h1>
+                <span class="badge bg-secondary">Total: <span id="gallery-count">0</span></span>
+            </div>
+
+            <div id="gallery-container" data-memes='<%- JSON.stringify(memes) %>'
+                class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4 justify-content-center">
+                <!-- Memes will be rendered here -->
+                <div id="loading" class="col-12 text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Carregando memes salvos...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { Template } from '/javascripts/template.js';
+        import { CanvasEditor } from '/javascripts/canva_editor.js';
+
+        async function initGallery() {
+            const container = document.getElementById("gallery-container");
+            const memes = JSON.parse(container.dataset.memes);
+
+            document.getElementById("loading")?.remove();
+            document.getElementById("gallery-count").innerText = memes.length;
+
+            await document.fonts.load("20px AnimeAce");
+
+            for (const meme of memes) {
+                renderMemeCard(meme, container);
+            }
+        }
+
+
+        async function renderMemeCard(meme, container) {
+            const card = document.createElement("div");
+            card.className = "meme-card";
+
+            const canvas = document.createElement("canvas");
+            canvas.width = 245;
+            canvas.height = 400;
+
+            const dateLabel = document.createElement("p");
+            dateLabel.innerText = `Saved on ${new Date(meme.createdAt).toLocaleDateString()}`;
+
+            card.appendChild(canvas);
+            card.appendChild(dateLabel);
+            container.appendChild(card);
+
+            const tid = meme.templateId;
+            const pagejson = `/data/page_${tid}.json`;
+            const imagePath = `/images/page_${tid}.jpg`;
+
+            try {
+                const res = await fetch(pagejson);
+                const templateData = await res.json();
+                const template = new Template(templateData);
+
+                const editor = new CanvasEditor(canvas, template);
+
+                meme.texts?.forEach(t => {
+                    editor.setText(t.balloonId, t.value);
+                });
+
+                await editor.loadImage(imagePath);
+                editor.draw(245, 400);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        initGallery();
+    </script>
+
+    <style>
+        .hover-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .hover-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5) !important;
+            border-color: #bb86fc !important;
+        }
+
+        .bg-black {
+            background-color: #000 !important;
+        }
+    </style>
+
+    <%- include('partials/footer') %>

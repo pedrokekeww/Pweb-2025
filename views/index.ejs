@@ -1,0 +1,154 @@
+<%- include('partials/header') %>
+
+  <div class="row g-4">
+    <!-- Manga Section -->
+    <div class="col-lg-8">
+      <div class="card bg-dark border-secondary shadow">
+        <div class="card-body p-0 d-flex flex-column align-items-center">
+          <div class="manga-container mt-4 mb-2">
+            <canvas id="manga" width="392" height="640" class="img-fluid border border-secondary shadow-sm"></canvas>
+          </div>
+          <p id="manga-title" class="text-secondary font-italic small mb-3"></p>
+          <div class="controls w-100 p-3 bg-black-50 border-top border-secondary d-flex justify-content-center gap-3">
+            <button id="toggle-btn" class="btn btn-outline-primary fw-bold px-4">Começar</button>
+            <button id="save-btn" class="btn btn-success fw-bold px-4">Salvar</button>
+          </div>
+          <div class="counter text-secondary small py-2 w-100 text-center border-top border-secondary" id="counter">
+            18/18</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar / Editor Section -->
+    <div class="col-lg-4">
+      <div class="card bg-dark border-secondary shadow h-100">
+        <div class="card-header border-secondary">
+          <h3 class="h5 mb-0 py-1 text-primary">Editar Textos</h3>
+        </div>
+        <div class="card-body">
+          <div id="image-frame" class="d-flex flex-column gap-3">
+            <p class="text-muted text-center pt-5">Aguardando geração do meme...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { TextBalloon } from '/javascripts/text_balloon.js';
+    import { Template } from '/javascripts/template.js';
+    import { CanvasEditor } from '/javascripts/canva_editor.js';
+
+    const canvas = document.getElementById('manga');
+    const ctx = canvas.getContext('2d');
+    const frame = document.getElementById('image-frame');
+    const btn = document.getElementById('toggle-btn');
+    const savebtn = document.getElementById('save-btn');
+    const mangaTitle = document.getElementById('manga-title');
+    const counterDisplay = document.getElementById('counter');
+    let num;
+    let editor;
+
+    function createInputs(template, editor) {
+      frame.innerHTML = ""; // Clear previous inputs
+
+      template.balloons.forEach(balloon => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "mb-3";
+
+        const label = document.createElement("label");
+        label.innerText = `Balão ${balloon.id}`;
+        label.className = "form-label small fw-bold text-secondary mb-1";
+
+        const input = document.createElement("textarea");
+        input.placeholder = "Digite o texto aqui...";
+        input.rows = 3;
+        input.className = "form-control bg-dark text-light border-secondary";
+
+        input.addEventListener("input", () => {
+          editor.setText(balloon.id, input.value);
+        });
+
+        wrapper.appendChild(label);
+        wrapper.appendChild(input);
+        frame.appendChild(wrapper);
+      });
+    }
+
+    async function loadMeme(num) {
+      const pagejson = `/data/page_${num}.json`;
+      const res = await fetch(pagejson);
+      return await res.json();
+    }
+
+    let pages = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
+    const initialTotal = pages.length;
+
+    function updateCounter() {
+      counterDisplay.innerText = `${pages.length}/${initialTotal}`;
+      if (pages.length === initialTotal) {
+        btn.innerText = "Começar";
+      } else {
+        btn.innerText = "Pular";
+      }
+    }
+
+    // Initialize counter
+    updateCounter();
+
+    btn.addEventListener('click', async () => {
+      if (pages.length == 0) return;
+
+      const indice = Math.floor(Math.random() * pages.length);
+      num = pages.splice(indice, 1)[0];
+
+      updateCounter();
+
+      if (pages.length === 0) {
+        btn.classList.add('disabled');
+      }
+
+      await document.fonts.load("20px AnimeAce");
+      const data = await loadMeme(num);
+      const template = new Template(data);
+      editor = new CanvasEditor(canvas, template);
+
+      await editor.loadImage('/images/page_' + num + '.jpg');
+      createInputs(template, editor);
+      editor.draw(392, 640);
+
+      mangaTitle.innerText = data.name || "Sem título";
+    });
+
+    savebtn.addEventListener('click', async () => {
+      if (!editor || num === undefined) return alert("Primeiro gere um meme!");
+
+      const payload = {
+        templateId: num,
+        texts: Object.entries(editor.texts).map(([id, value]) => ({
+          balloonId: Number(id),
+          value
+        }))
+      };
+
+      try {
+        const res = await fetch('/memes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          alert('Meme salvo com sucesso!');
+        } else {
+          const err = await res.json();
+          alert('Erro ao salvar: ' + (err.error || 'Erro desconhecido'));
+        }
+      } catch (e) {
+        console.error(e);
+        alert('Erro de conexão ao salvar.');
+      }
+    });
+
+  </script>
+
+  <%- include('partials/footer') %>

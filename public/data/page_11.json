@@ -1,0 +1,25 @@
+{
+  "name": "JOJO'S BIZARRE ADVENTURE",
+  "width": 749,
+  "height": 1156,
+  "balloons": [
+    {
+      "id": 1,
+      "rect": [
+        292,
+        78,
+        86,
+        93
+      ]
+    },
+    {
+      "id": 2,
+      "rect": [
+        60,
+        457,
+        107,
+        116
+      ]
+    }
+  ]
+}

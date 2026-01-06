@@ -1,0 +1,16 @@
+{
+  "name": "DEMON SLAYER",
+  "width": 800,
+  "height": 1168,
+  "balloons": [
+    {
+      "id": 1,
+      "rect": [
+        623,
+        531,
+        116,
+        147
+      ]
+    }
+  ]
+}

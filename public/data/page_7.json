@@ -1,0 +1,16 @@
+{
+  "name": "NARUTO SHIPPUDEN",
+  "width": 736,
+  "height": 1093,
+  "balloons": [
+    {
+      "id": 1,
+      "rect": [
+        305,
+        483,
+        118,
+        143
+      ]
+    }
+  ]
+}

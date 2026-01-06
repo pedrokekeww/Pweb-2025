@@ -1,0 +1,16 @@
+{
+  "name": "ONE PUNCH MAN",
+  "width": 490,
+  "height": 800,
+  "balloons": [
+    {
+      "id": 1,
+      "rect": [
+        33,
+        44,
+        135,
+        156
+      ]
+    }
+  ]
+}
